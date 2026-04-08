@@ -18,11 +18,8 @@ finalización de la consulta.
 
 ## Arquitectura
 
-<img width="709" height="449" alt="image" src="https://github.com/user-attachments/assets/017d526a-a965-4360-a9be-587c6265b7b7" />
 
 ### Capas por módulo
-
-<img width="874" height="80" alt="image" src="https://github.com/user-attachments/assets/a5ba9c90-4dc4-4884-a882-930befae26c9" />
 
 - **Controller(api)**: Expone los endpoints REST. Sin lógica de negocio.
 - **Facade**: Orquesta y transforma entre DTOs y entidades.
