@@ -11,4 +11,4 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - ./resources/documentos/MEDICENTER_SCRIPT.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./resources/documentos/FRM-SCRIPT-MEDIACENTER-V01.sql:/docker-entrypoint-initdb.d/init.sql

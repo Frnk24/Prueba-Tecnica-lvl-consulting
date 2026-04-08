@@ -230,10 +230,6 @@ ALTER TABLE paciente
     FOREIGN KEY (usuario_id)            REFERENCES usuario(usuario_id);
 
 ALTER TABLE programacion
-    ADD CONSTRAINT fk_programacion_usuario
-    FOREIGN KEY (usuario_id)            REFERENCES usuario(usuario_id);
-
-ALTER TABLE programacion
     ADD CONSTRAINT fk_programacion_usuarioservicio
     FOREIGN KEY (usuario_servicio_id)   REFERENCES usuario_servicio(usuario_servicio_id);
 
@@ -290,7 +286,6 @@ ALTER SEQUENCE evidencia_seq        OWNED BY evidencia.evidencia_id;
 CREATE INDEX idx_usuario_rol                ON usuario(rol_id);
 CREATE INDEX idx_usuarioservicio_usuario    ON usuario_servicio(usuario_id);
 CREATE INDEX idx_usuarioservicio_servicio   ON usuario_servicio(servicio_id);
-CREATE INDEX idx_programacion_usuario       ON programacion(usuario_id);
 CREATE INDEX idx_programacion_ususerv       ON programacion(usuario_servicio_id);
 CREATE INDEX idx_programacion_fecha         ON programacion(fecha);
 CREATE INDEX idx_cita_paciente              ON cita(paciente_id);
@@ -302,3 +297,86 @@ CREATE INDEX idx_triaje_cita                ON triaje(cita_id);
 CREATE INDEX idx_atencion_cita              ON atencion(cita_id);
 CREATE INDEX idx_receta_atencion            ON receta(atencion_id);
 CREATE INDEX idx_evidencia_atencion         ON evidencia(atencion_id);
+
+
+INSERT INTO catalogo (catalogo_id, codigo, nombre, descripcion) VALUES
+(1, 'DOC_DNI', 'DNI', 'Documento Nacional de Identidad'),
+(2, 'ESP_GEN', 'Medicina General', 'Especialidad en Medicina General'),
+(3, 'ESP_CAR', 'Cardiología', 'Especialidad en Cardiología'),
+(4, 'EUS001', 'ACTIVO', 'Usuario activo en el sistema'),
+(5, 'EUS002', 'INACTIVO', 'Usuario inactivo en el sistema'),
+(6, 'EPR001', 'DISPONIBLE', 'Programación con cupos disponibles'),
+(7, 'EPR002', 'COMPLETO', 'Programación sin cupos disponibles'),
+(8, 'EPR003', 'CANCELADO', 'Programación cancelada'),
+(9, 'ECI001', 'RESERVADO', 'Cita reservada por el paciente'),
+(10, 'ECI002', 'CANCELADO', 'Cita cancelada'),
+(11, 'ECI003', 'EN_ESPERA', 'Paciente pagó y espera triaje'),
+(12, 'ECI004', 'EN_TRIAJE', 'Paciente pasó triaje, espera consulta'),
+(13, 'ECI005', 'EN_CONSULTA', 'Paciente en el consultorio'),
+(14, 'ECI006', 'FINALIZADO', 'Atención médica terminada'),
+(15, 'ECO001', 'PENDIENTE', 'Pago pendiente de realizarse'),
+(16, 'ECO002', 'PAGADO', 'Pago realizado con éxito'),
+(17, 'ECO003', 'ANULADO', 'Pago anulado');
+SELECT setval('catalogo_seq', (SELECT MAX(catalogo_id) FROM catalogo));
+
+INSERT INTO rol (rol_id, nombre, descripcion) VALUES
+(1, 'ADMIN', 'Administrador del sistema'),
+(2, 'MEDICO', 'Personal médico'),
+(3, 'RECEPCIONISTA', 'Personal de recepción y caja');
+SELECT setval('rol_seq', (SELECT MAX(rol_id) FROM rol));
+
+INSERT INTO servicio (servicio_id, nombre, descripcion, precio, duracion, tiempo_tolerancia) VALUES
+(1, 'Medicina General', 'Evaluación médica integral', 50.00, 30, 10),
+(2, 'Cardiología', 'Evaluación del sistema cardiovascular', 120.00, 45, 15),
+(3, 'Pediatría', 'Atención médica para niños', 80.00, 30, 10);
+SELECT setval('servicio_seq', (SELECT MAX(servicio_id) FROM servicio));
+
+INSERT INTO usuario (usuario_id, rol_id, nombre, apellido, numero_documento, especialidad_codigo, usuario, contrasena, estado_codigo) VALUES
+(1, 1, 'Admin', 'Sistema', '00000000', NULL, 'admin', 'admin123', 'EUS001'),
+(2, 3, 'Lucia', 'Mendez', '11111111', NULL, 'lucia.rec', '123456', 'EUS001'),
+(3, 2, 'Dr. Roberto', 'Gomez', '22222222', 'ESP_GEN', 'roberto.med', '123456', 'EUS001'),
+(4, 2, 'Dra. Ana', 'Torres', '33333333', 'ESP_CAR', 'ana.med', '123456', 'EUS001');
+SELECT setval('usuario_seq', (SELECT MAX(usuario_id) FROM usuario));
+
+INSERT INTO usuario_servicio (usuario_servicio_id, usuario_id, servicio_id) VALUES
+(1, 3, 1),
+(2, 4, 2);
+SELECT setval('usuario_servicio_seq', (SELECT MAX(usuario_servicio_id) FROM usuario_servicio));
+
+INSERT INTO paciente (paciente_id, nombre, apellido, numero_documento, celular) VALUES
+(1, 'Carlos', 'Ruiz', '77777777', '999888777'),
+(2, 'Maria', 'Salas', '88888888', '999555444'),
+(3, 'Jorge', 'Perez', '99999999', '999111222');
+SELECT setval('paciente_seq', (SELECT MAX(paciente_id) FROM paciente));
+
+INSERT INTO programacion (programacion_id, usuario_servicio_id, fecha, hora_inicio, hora_fin, cupo_total, cupo_ocupado, estado_codigo) VALUES
+(1, 1, CURRENT_DATE, '08:00:00', '13:00:00', 10, 2, 'EPR001'),
+(2, 2, CURRENT_DATE, '14:00:00', '18:00:00', 6, 1, 'EPR001');
+SELECT setval('programacion_seq', (SELECT MAX(programacion_id) FROM programacion));
+
+INSERT INTO cita (cita_id, paciente_id, programacion_id, inconveniente, estado_codigo) VALUES
+(1, 1, 1, 'Dolor de cabeza fuerte', 'ECI006'),
+(2, 2, 1, 'Chequeo general', 'ECI003'),
+(3, 3, 2, 'Taquicardia', 'ECI001');
+SELECT setval('cita_seq', (SELECT MAX(cita_id) FROM cita));
+
+INSERT INTO comprobante (comprobante_id, paciente_id, usuario_id, cita_id, metodo_codigo, total, estado_codigo) VALUES
+(1, 1, 2, 1, 'EFECTIVO', 50.00, 'ECO002'),
+(2, 2, 2, 2, 'TARJETA', 50.00, 'ECO002');
+SELECT setval('comprobante_seq', (SELECT MAX(comprobante_id) FROM comprobante));
+
+INSERT INTO triaje (triaje_id, cita_id, talla, peso, presion, temperatura, frecuencia_cardiaca, saturacion) VALUES
+(1, 1, 1.75, 72.5, '120/80', 36.8, 75, 98);
+SELECT setval('triaje_seq', (SELECT MAX(triaje_id) FROM triaje));
+
+INSERT INTO atencion (atencion_id, cita_id, motivo_consulta, diagnostico, tratamiento, observacion) VALUES
+(1, 1, 'Dolor de cabeza fuerte y fiebre', 'Migraña por estrés', 'Descanso y medicación', 'Paciente debe volver en 1 semana si el dolor persiste');
+SELECT setval('atencion_seq', (SELECT MAX(atencion_id) FROM atencion));
+
+INSERT INTO receta (receta_id, atencion_id, medicamento, dosis, frecuencia, duracion) VALUES
+(1, 1, 'Paracetamol 500mg', '1 tableta', 'Cada 8 horas', '3 días');
+SELECT setval('receta_seq', (SELECT MAX(receta_id) FROM receta));
+
+INSERT INTO evidencia (evidencia_id, atencion_id, url, descripcion) VALUES
+(1, 1, 'https://storage.clinica.com/img/radiografia_001.jpg', 'Radiografía de senos paranasales');
+SELECT setval('evidencia_seq', (SELECT MAX(evidencia_id) FROM evidencia));
