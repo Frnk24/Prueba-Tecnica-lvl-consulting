@@ -98,6 +98,21 @@ Opción B: Ejecutar mediante terminal usando Maven:
 mvn spring-boot:run
 ```
 
+## Pruebas de la API (Postman / Bruno)
+
+Para facilitar la evaluación técnica y la validación de todos los flujos del negocio, se adjunta la colección completa de peticiones HTTP.
+
+**Ubicación de los archivos:** `/documentos/pruebas-api/`
+
+**Formato disponible:**
+* `Medicenter_Postman_Collection.json`: Archivo exportado listo para importar en **Postman** (Estándar recomendado).
+
+**Instrucciones de ejecución:**
+1. Asegúrate de que el proyecto Spring Boot y la base de datos PostgreSQL estén corriendo.
+2. Importa el archivo `.json` en Postman.
+3. La colección ya tiene preconfigurada. No requieres configuración adicional.
+4. Ejecuta las peticiones respetando el orden numérico de las carpetas (01-Seguridad -> 07-Clinico) para cumplir con el flujo lógico del sistema y las restricciones de llaves foráneas.
+
 ## Endpoints principales
 
 | Módulo | Método | Ruta |
