@@ -31,15 +31,15 @@ finalización de la consulta.
 - **Domain**: Entidades JPA mapeadas a la base de datos.
 
 ### Módulos implementados
-app/
-configuration/  → Catálogo de parámetros del sistema
-security/       → Roles, usuarios, servicios y asignaciones
-admision/       → Gestión de pacientes
-programacion/   → Agenda médica y cupos
-cita/           → Reserva y gestión de citas
-facturacion/    → Comprobantes de pago
-triaje/         → Evaluación inicial del paciente
-atencion/       → Consulta médica, recetas y evidencias
+- app/
+- configuration/  → Catálogo de parámetros del sistema
+- security/       → Roles, usuarios, servicios y asignaciones
+- admision/       → Gestión de pacientes
+- programacion/   → Agenda médica y cupos
+- cita/           → Reserva y gestión de citas
+- facturacion/    → Comprobantes de pago
+- triaje/         → Evaluación inicial del paciente
+- atencion/       → Consulta médica, recetas y evidencias
 
 ## Flujo del negocio
 
@@ -66,19 +66,34 @@ atencion/       → Consulta médica, recetas y evidencias
 
 ### Requisitos
 - Java 25
-- PostgreSQL corriendo en puerto 5433
-- Base de datos: BD_MEDICENTER
+- Docker y Docker Compose instalados (para levantar la base de datos)
+- IntelliJ IDEA (o tu IDE preferido)
+
+### 1. Levantar la Base de Datos
+El proyecto incluye un entorno preconfigurado con Docker que levanta PostgreSQL 18 en el puerto 5433 y ejecuta automáticamente el script `MEDICENTER_SCRIPT.sql` con la estructura de tablas y datos iniciales.
+
+Abre una terminal en la raíz del proyecto y ejecuta:
+
+```bash
+docker-compose up -d
+```
 
 ### application.properties
 ```properties
 spring.datasource.url=jdbc:postgresql://localhost:5433/BD_MEDICENTER
-spring.datasource.username=tu_usuario
-spring.datasource.password=tu_contraseña
+spring.datasource.username=postgres
+spring.datasource.password=admin
 spring.jpa.hibernate.ddl-auto=none
 spring.jpa.open-in-view=false
 ```
 
 ### Ejecutar el proyecto
+Una vez que el contenedor de la base de datos esté corriendo, puedes iniciar la aplicación de dos formas:
+
+Opción A (Recomendada): Ejecutar la clase principal MsClinicaGestionApplication.java directamente desde IntelliJ IDEA.
+
+Opción B: Ejecutar mediante terminal usando Maven:
+
 ```bash
 mvn spring-boot:run
 ```
@@ -97,3 +112,42 @@ mvn spring-boot:run
 | Comprobante | POST | /api/comprobante/find |
 | Triaje | POST | /api/triaje/find |
 | Atención | POST | /api/atencion/find |
+
+## Planteamiento de la solución
+
+### Decisiones de arquitectura
+
+Se implementó una arquitectura en capas modular organizada por dominio 
+de negocio siguiendo los estándares de LVL Consulting. La decisión de 
+organizar por módulo de negocio en lugar de por tipo de clase permite 
+escalar el sistema agregando nuevos módulos sin afectar los existentes.
+
+La capa Facade fue clave para desacoplar el Controller del Service, 
+permitiendo que cada capa tenga una responsabilidad única y clara.
+
+### Decisiones de modelo de datos
+
+Se implementó borrado lógico en todas las tablas mediante el campo 
+habilitado (0/1) para preservar el historial clínico, que por 
+regulaciones médicas nunca debe eliminarse físicamente.
+
+Los estados de la cita se diseñaron siguiendo el flujo real del negocio:
+RESERVADO → EN_ESPERA → EN_TRIAJE → EN_CONSULTA → FINALIZADO
+
+La tabla programacion maneja cupos automáticamente. Al reservar una 
+cita el cupo_ocupado incrementa, al cancelar decrementa. Cuando 
+cupo_ocupado = cupo_total la programación pasa a estado COMPLETO.
+
+### Decisiones técnicas
+
+Se utilizó JpaSpecificationExecutor para filtros dinámicos en lugar 
+de múltiples métodos en el repositorio, reduciendo el código y 
+haciendo los filtros más flexibles.
+
+Se eligió ModelMapper con estrategia STRICT para evitar mapeos 
+incorrectos entre entidades con nombres de campos similares.
+
+Las relaciones @ManyToOne y @OneToOne se mapearon con las entidades 
+completas en lugar de solo los IDs, aprovechando el lazy loading 
+de JPA y facilitando la navegación de relaciones anidadas en las 
+respuestas.
