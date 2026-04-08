@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:18
+    container_name: db_clinica
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: BD_MEDICENTER
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./documentos/MEDICENTER_SCRIPT.sql:/docker-entrypoint-initdb.d/init.sql
